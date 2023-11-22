@@ -58,6 +58,13 @@ for i in range(len(table)):
     CM_probability[table[i][j]][j]+=prob_M[j]*prob_K[i]
 print(CM_probability)
 
+print('')
+sum = 0
+for i in range(20):
+  for j in range(20):
+    sum+= CM_probability[i][j]
+print(sum)
+
 # Инвертировали в распределение P(M,C)
 MC_probability = [0]*20
 for i in range(20):
@@ -67,10 +74,90 @@ for i in range(20):
     MC_probability[i][j] = CM_probability[j][i]
 print(MC_probability)
 
+
 pmc = [0]*20
 for i in range(20):
   pmc[i] = [0]*20
 for i in range(20):
   for j in range(20):
-    pmc[i][j] = MC_probability[i][j]/C[j]
-print(pmc)
+    pmc[i][j] = round(MC_probability[i][j]/C[j], 2)
+#print(pmc)
+for i in range(len(pmc)):
+  print(pmc[i], end = '\n')
+
+# Детерміністична вирішуюча функція
+deterministic_decision_function = [0] * 20
+p_cm = [ [0]*20 for i in range(20)]
+for i in range(20):
+  for j in range(20):
+    p_cm[i][j] = pmc[j][i]
+for i in range(len(p_cm)):
+  print(p_cm[i], end = '\n')
+for i in range(20):
+  max_probability = max(p_cm[i])
+  deterministic_decision_function[i] = p_cm[i].index(max_probability)
+det_matrix = [0]*20
+for i in range(20):
+  det_matrix[i] = [0]*20
+for i in range(20):
+  det_matrix[i][deterministic_decision_function[i]] = 1
+print('')
+for i in range(len(det_matrix)):
+  print(det_matrix[i], end = '\n')
+
+#Функция потерь детерминистической функции
+lost_det_function = 0
+pmc_matrix = pmc.copy()
+pcm = [[0]*20 for i in range(20)]
+for i in range(20):
+  for j in range(20):
+    pcm[i][j] = pmc_matrix[j][i]
+print('')
+for i in range(20):
+   print(pcm[i], end = '\n')
+for i in range(20):
+  lost_det_function+=C[i]*(1 - max(pcm[i]))
+print(lost_det_function)
+
+# Стохастическая функция
+
+stochastic_decision_function = [0]*20
+for i in range(20):
+  stochastic_decision_function[i] = [0]*20
+pcm_matrix = [ [0]*20 for i in range(len(stochastic_decision_function))]
+for i in range(len(pmc)):
+  for j in range(len(pmc[i])):
+    pcm_matrix[i][j] = pmc[j][i]
+max_matrix = [0 for i in range(20)]
+for i in range(len(max_matrix)):
+  max_matrix[i] = max(pcm_matrix[i])
+stochastic_decision_function = pcm_matrix.copy()
+for i in range(20):
+  for j in range(20):
+    if stochastic_decision_function[i][j]!=max_matrix[i]:
+      stochastic_decision_function[i][j] = 0
+M_sum = [0 for i in range(20)]
+for i in range(20):
+  for j in range(20):
+    if stochastic_decision_function[i][j]!=0:
+      M_sum[i]+=prob_M[j]
+for i in range(20):
+  for j in range(20):
+    if stochastic_decision_function[i][j]!=0:
+      stochastic_decision_function[i][j] = round(prob_M[j]/M_sum[i], 2)
+for i in range(20):
+  print(stochastic_decision_function[i], end = '\n') 
+
+#Функция потерь стохастической функции
+average_losses = [[0]*20 for i in range(20)]
+for i in range(20):
+  for j in range(20):
+    average_losses[i][j] = round(1 - stochastic_decision_function[i][j], 2)
+for i in range(20):
+  print(average_losses[i], end = '\n')
+
+result = 0
+for i in range(20):
+  for j in range(20):
+    result = result + CM_probability[i][j]*average_losses[i][j]
+print(result)
